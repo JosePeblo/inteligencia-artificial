@@ -5,15 +5,25 @@ import matplotlib.pyplot as plt
 import missingno as msno
 from ucimlrepo import fetch_ucirepo
 
+# My own implementation
 from mysklearn import StandardScaler, LinearRegression, SplitDataset
 
+# ==============================ETL============================================
 def GetSamplesAndYs(df: pd.DataFrame):
+  '''
+  Utility function to extract the predictory variables from the predicted one
+  Args:
+    df (pd.DataFrame) Dataframe with the corresponding values
+  Returns:
+    tuple: the samples and y as separate dataframes
+  '''  
   samples = df.drop(['murders'], axis=1)
   y = df[['murders']]
   
   return (samples, y)
 
 print('Fetching dataset')
+# We download the data using the ucirepo library
 CrimeRepo = fetch_ucirepo(id=211) 
   
 # data (as pandas dataframes) 
@@ -37,8 +47,8 @@ train = Scaler(train)
 val = Scaler(val)
 test = Scaler(test)
 
+# ============================REGRESSION=======================================
 model = LinearRegression()
-
 alpha = 0.01
 
 trainSamples, trainY = GetSamplesAndYs(train)
@@ -48,6 +58,8 @@ print('Start Model Fitting')
 model.fit(trainSamples, trainY, valSamples, valY, alpha)
 print('Finished Fitting')
 
+
+# ========================REGRESSION EVALUATION================================
 plt.clf()
 sns.lineplot(model.valErrors)
 ax = sns.lineplot(model.trainErrors)
