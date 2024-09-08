@@ -1,0 +1,82 @@
+\documentclass[twocolumn]{article}
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[spanish]{babel}
+\addto{\captionsspanish}{\renewcommand{\abstractname}{Abstract}}
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{dirtytalk}
+\usepackage{cancel}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{blindtext}
+\usepackage{multicol}
+\usepackage{abstract}
+\usepackage{float}
+
+\title{Clasificación de ingreso anual mayor a 50k}
+\author{José Pablo Martínez Valdivia}
+
+\begin{document}
+
+\twocolumn[
+  \maketitle
+  \begin{onecolabstract}
+    This paper presents a predictive model based on the Random Forest algorithm 
+    to classify income levels using the Census Income (50k) dataset. 
+    The objective of the study is to predict whether an individual's income exceeds 
+    \$50,000 per year based on demographic and work-related attributes. 
+    Furthermore, I discuss the various preprocessing decisions made, such as 
+    handling encoding categorical variables, and the choice of hyperparameters 
+    to optimize model performance.
+  \end{onecolabstract}
+]
+
+% \begin{keyword}
+% asd
+% \end{keyword}
+
+\section{Introducción}
+El dataset \say{Census Income} fue proveido por el \say{UCI Machine Learning Repository}.
+Contiene 14 variables y 48842 instancias de datos provenientes de un censo realizado
+en 1994 para determinar si un adulto genera un ingreso anual mayor a \$50k.
+Emplearemos el modelo de bosque aleatorio (random forest) para emplear una predicción 
+categórica y disminuir el overfit en el modelo.
+
+\section{ETL}
+\subsection{Extracción}
+Los datos fueron descargados por medio de la librería de \say{ucimlrepo}.
+Estos proveen datos demográficos como edad, estado civil, educación, ocupación, raza,
+sexo, pais de origen, etc.
+
+Los datos se encuentran completos en su mayoría, pero hay datos faltantes en 
+las columnas de tipo de trabajo, ocupación y pais de origen como se puede ver en
+\ref{fig:missing}. Se tomó la decision de deshacernos de las filas con datos faltantes
+las cuales representan 1221 instancias, lo cual es el 2.4\% de los datos; sobrándonos
+47621 instancias. Esta decision se tomó considerando que algún tipo de inputación 
+podría introducir errores para la taréa de clasificación.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/missing.png}
+\caption{\label{fig:missing}Valores faltantes.}
+\end{figure}
+
+\subsection{Transformación}
+Para poder general el bosque aleatorio necesitamos convertir las columnas categóricas
+en valores numéricos. Para esto haremos uso de \say{one-hot encoding}, esta técnica
+consta de tomar todas las categorías en una columna y crear una columna por categoría, 
+dejando un uno en la categoría que prsenta la instancia y ceros en el resto.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/onehot.png}
+\caption{\label{fig:onehot}Método de one-hot encoding.}
+\end{figure}
+
+
+\end{document}
