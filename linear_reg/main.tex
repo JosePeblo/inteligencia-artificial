@@ -9,12 +9,14 @@
 
 % Useful packages
 \usepackage{amsmath}
+\usepackage{dirtytalk}
 \usepackage{cancel}
 \usepackage{graphicx}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage{blindtext}
 \usepackage{multicol}
 \usepackage{abstract}
+\usepackage{float}
 
 \title{Regresión lineal para predicción de homicidios en Estados Unidos}
 \author{José Pablo Martínez Valdivia}
@@ -37,14 +39,14 @@
 % \end{keyword}
 
 \section{Introducción}
-El dataset "Communities and Crime Unnormalized" fue conseguido del 
-"UCI Machine Learning Repository" y consta de 125 variables y 2215 instancias
+El dataset \say{Communities and Crime Unnormalized} fue conseguido del 
+\say{UCI Machine Learning Repository} y consta de 125 variables y 2215 instancias
 de datos poblacionales y de crímenes sucedidos entre 1990 y 1995. El objetivo 
 del análisis es encontrar un modelo que pueda predecir la cantidad de homicidios.
 
 \section{ETL}
 \subsection{Extracción}
-Los datos fueron descargados por medio de la librería de "ucimlrepo". Estos contienen 
+Los datos fueron descargados por medio de la librería de \say{ucimlrepo}. Estos contienen 
 datos poblacionales como:
 \begin{itemize}
   \item Código de estado
@@ -58,10 +60,40 @@ datos poblacionales como:
 Entre otras. 
 
 La mayoría de las columnas no tienen datos nulos, sin embargo, muchas columnas 
-referentes a la fuerza policial se encuentran truncadas a 343 valores. Se decidió 
-eliminar todas estas columnas, ya que borrar las filas sacrificaría la cantidad de 
-datos para entrenar el modelo e imputar los datos con media puede producir sesgos o 
-errores en el modelo.
+se encuentran truncadas a 343 valores ya que el dataset fue formado con datos 
+de un censo de 1990 y datos del fbi en 1995. Esto causó que las columnas con
+datos policiales como cantidad, demografía, flotas, etc no se vea presente más 
+que en 343 filas como se ve en \ref{fig:missing}. Dado a que estos precentan solo
+el 15\% de los datos, se decidió eliminar todas estas columnas, ya que borrar 
+las filas sacrificaría la cantidad de datos para entrenar el modelo e imputar 
+los datos con media puede producir sesgos o errores en el modelo.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/missing.png}
+\caption{\label{fig:missing}Proporción de valores faltantes.}
+\end{figure}
+
+Analisando la matriz de correlación \ref{fig:corr} podemos observar una 
+aglomeración abajo a la derecha la cual representa datos relacionados con las 
+rentas de cada comunidad especificada. Clusters con relación lineal positiva
+en el centro de la matriz, los cuales representan porcentajes de migrantes
+de distintas etnias. Finalmente podemos ver clusters de relaciones negativas
+en la parte superior izquierda, dónde se presentan datos de empleo, sueldos,
+propiedades, nivel de educación y pobresa.
+
+La correlación nos permite medir la relación entre dos variables. Nos ayuda a identificar si 
+existe una asociación entre ellas y qué tan fuerte es dicha relación, lo que facilita 
+detectar patrones y posibles dependencias entre variables. 
+Aunque la correlación no implica causalidad, un alto grado de correlación puede 
+sugerir que una variable puede ser útil para predecir el comportamiento de otra. 
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/corr.png}
+\caption{Matriz de correlación.}
+\label{fig:corr}
+\end{figure}
 
 \subsection{Transformación}
 Solo la columna de \textit{Estado} contiene variables categóricas, pero se decidió
@@ -162,27 +194,55 @@ Cada epoch se calculo el \textit{MSE} tomando la pérdida con el conjunto de val
 y ajustando los coeficientes en magnitud del valor de aprendizaje.
 
 \section{Resultados}
-Después de 40,000 epochs, el modelo converge a un \textit{MSE} de 0.042171 y 
-una \(R^2\) de 0.944747 comparando con el conjunto de prueba; esto representa un 
+Después de 40,000 epochs, el modelo converge a un \textit{MSE} de 0.042171 en el
+conjunto de validación y finalmente podemos ver las $R^2$ para cada conjunto en
+la tabla \ref{fig:r2} comparando con el conjunto de prueba; esto representa un 
 alto ajuste y poder predictivo del modelo con los datos reales de asesinatos en Estados unidos.
-La figura [1] muestra la gráfica del error de la función de pérdida a través de las epochs.
+Podemos notar un grado bajo de overfitting para los datos de entrenamiento (1\%)
+al momento de comparar las $R^2$ de entrenamiento y validación el cual en esta 
+magnitud no presenta un problema considerable para predecir datos nuevos. 
+Igualmente podemos ver poca diferencia en la reducción del error \ref{fig:loss}
+para los conjuntos de validación y entrenamiento.
+En general el modelo tiene un buen poder predictivo y no cae en overfitting 
+por lo cual podemos considerar su grado de sesgo como bajo.
+
+\begin{table}[!ht]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+$R^2$ train      & 0.9554   \\
+\hline
+$R^2$ validation & 0.9335   \\
+\hline
+$R^2$ test       & 0.9462   \\ 
+\hline
+\end{tabular}
+\caption{Desglose de $R^2$.}
+\label{fig:r2}
+\end{center}
+\end{table}
+
+La figura \ref{fig:loss} muestra la gráfica del error de la función de pérdida a través de las epochs.
 Podemos ver que el modelo converge relativamente rápido y las 40000 están de más para el ajuste.
 
-Finalmente podemos observar en la figura [2] como se comparan las predicciones con
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/error.png}
+\caption{Función de pérdida.}
+\label{fig:loss}
+\end{figure}
+
+Finalmente podemos observar en la figura \ref{fig:regpreds} como se comparan las predicciones con
 los valores reales del conjunto de prueba. Se nota inicialmente que la predicción
 se mantiene consistente para valores cercanos a 0 pero comienza a divergir con valores
 de asesinatos más altos.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.4\textwidth]{assets/error.png}
-\caption{\label{fig:dc1}Función de pérdida.}
-\end{figure}
 
-\begin{figure}
+\begin{figure}[!ht]
 \centering
 \includegraphics[width=0.4\textwidth]{assets/preds.png}
-\caption{\label{fig:dc2}Resultado de la regresión.}
+\caption{Resultado de la regresión.}
+\label{fig:regpreds}
 \end{figure}
 
 \section*{Referencias}

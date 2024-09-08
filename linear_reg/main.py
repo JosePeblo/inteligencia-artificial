@@ -69,9 +69,9 @@ plt.show()
 
 testSamples, testY = GetSamplesAndYs(test)
 
-r2 = model.score(testSamples, testY)
-
-print('Error (r2):', r2)
+print('Train error (r2):', model.score(trainSamples, trainY))
+print('Val error (r2):', model.score(valSamples, valY))
+print('Test error (r2):', model.score(testSamples, testY))
 
 sns.color_palette('tab10', as_cmap=True)
 sns.set_palette('tab10')
