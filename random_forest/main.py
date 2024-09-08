@@ -48,8 +48,14 @@ preprocessor = ColumnTransformer(
   remainder='passthrough'
 )
 
+# Training and test sets
 Xtrain, Xtest, ytrain, ytest = train_test_split(
   X, y, test_size=0.2, random_state=69
+)
+
+# Validation used for indexes later on
+Xtrain, Xval, ytrain, yval = train_test_split(
+  Xtrain, ytrain, test_size=0.2, random_state=42
 )
 
 # ===============================MODEL=========================================
@@ -60,7 +66,8 @@ pipeline = Pipeline(
   steps=[
     ('preprocessor', preprocessor),
     ('classifier', RandomForestClassifier(
-      n_estimators=400, max_leaf_nodes=10, n_jobs=-1, random_state=42,
+      n_estimators=400, max_leaf_nodes=10, 
+      max_depth=20, n_jobs=-1, random_state=42,
     ))
   ]
 )
@@ -68,24 +75,34 @@ pipeline = Pipeline(
 print('Fitting the model...')
 pipeline.fit(Xtrain, ytrain.values.ravel())
 
-# ==============================RESULTS========================================
+# ==============================VALIDATION=====================================
 
 # Model scores
 print('Train score: %f' % pipeline.score(Xtrain, ytrain))
-print('Test score: %f' % pipeline.score(Xtest, ytest))
+print('Validation score: %f' % pipeline.score(Xval, yval))
 
 trainPred = pipeline.predict(Xtrain)
-testPred = pipeline.predict(Xtest)
+valPred = pipeline.predict(Xval)
 
 print('Train classification report')
 print(classification_report(ytrain, trainPred, zero_division=np.nan))
 
-print('Test classification report')
-print(classification_report(ytest, testPred, zero_division=np.nan))
+print('Validation classification report')
+print(classification_report(ytest, valPred, zero_division=np.nan))
 
 ConfusionMatrixDisplay(
-  confusion_matrix=confusion_matrix(ytest, testPred), 
+  confusion_matrix=confusion_matrix(ytest, valPred), 
   display_labels=pipeline['classifier'].classes_
 ).plot()
 plt.suptitle('Confusion Matrix')
 plt.show()
+
+# ==================================TUNING=====================================
+
+cvParams = {
+  'n_estimators': 500,
+  'max_depth': 20,
+  'min_samples_leaf': [1, 2, 5],
+  'min_samples_split': [2, 5, 10],
+  'max_features': [2, 3, 6],
+}

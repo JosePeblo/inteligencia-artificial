@@ -55,9 +55,9 @@ sexo, pais de origen, etc.
 
 Los datos se encuentran completos en su mayoría, pero hay datos faltantes en 
 las columnas de tipo de trabajo, ocupación y pais de origen como se puede ver en
-\ref{fig:missing}. Se tomó la decision de deshacernos de las filas con datos faltantes
+\ref{fig:missing}. Se tomó la decisión de deshacernos de las filas con datos faltantes
 las cuales representan 1221 instancias, lo cual es el 2.4\% de los datos; sobrándonos
-47621 instancias. Esta decision se tomó considerando que algún tipo de inputación 
+47621 instancias. Esta decisión se tomó considerando que algún tipo de inputación 
 podría introducir errores para la taréa de clasificación.
 
 \begin{figure}[!h]
@@ -68,7 +68,7 @@ podría introducir errores para la taréa de clasificación.
 
 \subsection{Transformación}
 Para poder general el bosque aleatorio necesitamos convertir las columnas categóricas
-en valores numéricos. Para esto haremos uso de \say{one-hot encoding}, esta técnica
+en valores numéricos. Para esto haremos uso de \textit{one-hot encoding}, esta técnica
 consta de tomar todas las categorías en una columna y crear una columna por categoría, 
 dejando un uno en la categoría que prsenta la instancia y ceros en el resto.
 
@@ -77,6 +77,57 @@ dejando un uno en la categoría que prsenta la instancia y ceros en el resto.
 \includegraphics[width=0.4\textwidth]{assets/onehot.png}
 \caption{\label{fig:onehot}Método de one-hot encoding.}
 \end{figure}
+
+\section{Marco teórico}
+\subsection{Árboles de decisión}
+Un arbol de decisión, específicamente para clasificación, es un modelo que nos 
+permite producir una salida discreta. Este modelo consta de una estructura de árbol
+binario en la cual cada nodo padre presenta una comparación lógica de una de las entradas
+y las hojas representan una clase de salida.
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/Decision_Tree.jpg}
+\caption{\label{fig:dt}Estructura de un árbol de decisión.}
+\end{figure}
+
+Este modelo nos trae una serie de problemas. Para empezar, la complegidad de tiempo
+para obtener el resultado de un arbol es $O(n\log{n})$ dónde n se refiere al número
+de muestras con el que hayamos entrenedo el árbol, por otro lado la complegidad para
+crear el arbol es de:
+\begin{equation}
+  O(n_{muestras}n_{variables}\log{n_{muestras}})
+\end{equation}
+lo cual indica que los tiempos de entrenamiento escalaran $O(n\log{n})$ en base
+a la cantidad de muestras que tengamos en el dataset. Esto quizá no presenta un problema
+tan grave ya que solo contamos con 48 mil entradas, pero el problema más grande de 
+los árboles de decisión es que el generar un árbol muy complejo esta sujeto sobreajuste,
+es decir, que el modelo se adapte a predecir los datos de entrenamiento y por lo
+tanto no generalice y tenga una menor precisión al predecir datos nuevos.
+
+\subsection{Bosque Aleatorio}
+Una de las formas de combatir el sobreajuste inevitable de los árboles de decisión
+es haciendo uso de un bosque aleatorio, este es un método de ensambe en el cual,
+en lugar de generar un solo árbol complejo. Generamos múchos árboles pequeños y
+tomamos como salida la clase que haya sido más votada por todos los árboles.
+Este método nos permite en general mitigar el sobreajuste dada la aleatoreidad de 
+cada árbol.
+
+Train score: 0.833841
+Test score: 0.832231
+
+\section{Entrenamiento}
+El set de datos fue separado en tres conjuntos: entrenamiento, validación y pruebas
+constando respectivamente del 60\%, 20\% y 20\% de los datos del set. Para el modelo
+se decidió usar los siguientes híperparametros:
+\begin{itemize}
+  \item n\_estimators: 400
+  \item max\_leaf\_nodes: 10
+  \item max\_depth: 20
+\end{itemize}
+Estos parámetros serán usados inicialmente para probar como se desempeña el modelo 
+contra los datos de validación.
+
 
 
 \end{document}
