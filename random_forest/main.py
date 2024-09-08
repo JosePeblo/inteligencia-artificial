@@ -66,8 +66,9 @@ pipeline = Pipeline(
   steps=[
     ('preprocessor', preprocessor),
     ('classifier', RandomForestClassifier(
-      n_estimators=400, max_leaf_nodes=10, 
-      max_depth=20, n_jobs=-1, random_state=42,
+      n_estimators=300, max_depth=None, min_samples_split=4,
+      min_samples_leaf=1, max_features='sqrt',
+      n_jobs=-1, random_state=42,
     ))
   ]
 )
@@ -88,10 +89,10 @@ print('Train classification report')
 print(classification_report(ytrain, trainPred, zero_division=np.nan))
 
 print('Validation classification report')
-print(classification_report(ytest, valPred, zero_division=np.nan))
+print(classification_report(yval, valPred, zero_division=np.nan))
 
 ConfusionMatrixDisplay(
-  confusion_matrix=confusion_matrix(ytest, valPred), 
+  confusion_matrix=confusion_matrix(yval, valPred), 
   display_labels=pipeline['classifier'].classes_
 ).plot()
 plt.suptitle('Confusion Matrix')
@@ -99,10 +100,41 @@ plt.show()
 
 # ==================================TUNING=====================================
 
-cvParams = {
-  'n_estimators': 500,
-  'max_depth': 20,
-  'min_samples_leaf': [1, 2, 5],
-  'min_samples_split': [2, 5, 10],
-  'max_features': [2, 3, 6],
+newParams = {
+  'n_estimators': 200,
+  'max_depth': 40,
+  'min_samples_split': 2,
+  'min_samples_leaf': 5,
+  'max_features': 'sqrt',
 }
+
+pipeline['classifier'].set_params(**newParams)
+
+pipeline.fit(Xtrain, ytrain.values.ravel())
+
+# =================================TESTING=====================================
+
+# Model scores
+print('Train score: %f' % pipeline.score(Xtrain, ytrain))
+print('Validation score: %f' % pipeline.score(Xval, yval))
+print('Test score: %f' % pipeline.score(Xtest, ytest))
+
+trainPred = pipeline.predict(Xtrain)
+valPred = pipeline.predict(Xval)
+testPred = pipeline.predict(Xtest)
+
+print('Train classification report')
+print(classification_report(ytrain, trainPred, zero_division=np.nan))
+
+print('Validation classification report')
+print(classification_report(yval, valPred, zero_division=np.nan))
+
+print('Test classification report')
+print(classification_report(ytest, testPred, zero_division=np.nan))
+
+ConfusionMatrixDisplay(
+  confusion_matrix=confusion_matrix(ytest, testPred), 
+  display_labels=pipeline['classifier'].classes_
+).plot()
+plt.suptitle('Confusion Matrix')
+plt.show()

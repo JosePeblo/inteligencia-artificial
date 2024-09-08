@@ -17,6 +17,7 @@
 \usepackage{multicol}
 \usepackage{abstract}
 \usepackage{float}
+\usepackage{breakurl}
 
 \title{Clasificación de ingreso anual mayor a 50k}
 \author{José Pablo Martínez Valdivia}
@@ -51,14 +52,23 @@ categórica y disminuir el overfit en el modelo.
 \subsection{Extracción}
 Los datos fueron descargados por medio de la librería de \say{ucimlrepo}.
 Estos proveen datos demográficos como edad, estado civil, educación, ocupación, raza,
-sexo, pais de origen, etc.
+sexo, país de origen, etc.
 
 Los datos se encuentran completos en su mayoría, pero hay datos faltantes en 
-las columnas de tipo de trabajo, ocupación y pais de origen como se puede ver en
+las columnas de tipo de trabajo, ocupación y país de origen como se puede ver en
 \ref{fig:missing}. Se tomó la decisión de deshacernos de las filas con datos faltantes
 las cuales representan 1221 instancias, lo cual es el 2.4\% de los datos; sobrándonos
-47621 instancias. Esta decisión se tomó considerando que algún tipo de inputación 
-podría introducir errores para la taréa de clasificación.
+47621 instancias. Esta decisión se tomó considerando que algún tipo de imputación  
+podría introducir errores para la tarea de clasificación.
+
+Por otro lado la columna con las clases objetivo consta de strings que representan
+si la ganancia fue menor o igual a 50k dolares $\leq50k$ o mayor $\<50k$. Esta columna
+tiene un problema con la imputación  ya que en ambas clases estas contien un punto \say{.}
+en unas instancias y no en otras, generándonos 4 clases en lugar de dos. Después 
+de revisar la documentación del dataset y confirmar que no se menciona nada sobre 
+la significancia de este punto en los registros se tomó la decisión de asumir que 
+el punto no es significativo y transformar los datos para removerlo de las clases
+correspondientes.
 
 \begin{figure}[!h]
 \centering
@@ -70,17 +80,17 @@ podría introducir errores para la taréa de clasificación.
 Para poder general el bosque aleatorio necesitamos convertir las columnas categóricas
 en valores numéricos. Para esto haremos uso de \textit{one-hot encoding}, esta técnica
 consta de tomar todas las categorías en una columna y crear una columna por categoría, 
-dejando un uno en la categoría que prsenta la instancia y ceros en el resto.
+dejando un uno en la categoría que presenta la instancia y ceros en el resto.
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{assets/onehot.png}
-\caption{\label{fig:onehot}Método de one-hot encoding.}
+\caption{\label{fig:onehot}Método de one-hot encoding \cite{onehot}.}
 \end{figure}
 
 \section{Marco teórico}
 \subsection{Árboles de decisión}
-Un arbol de decisión, específicamente para clasificación, es un modelo que nos 
+Un árbol de decisión, específicamente para clasificación, es un modelo que nos 
 permite producir una salida discreta. Este modelo consta de una estructura de árbol
 binario en la cual cada nodo padre presenta una comparación lógica de una de las entradas
 y las hojas representan una clase de salida.
@@ -88,46 +98,163 @@ y las hojas representan una clase de salida.
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{assets/Decision_Tree.jpg}
-\caption{\label{fig:dt}Estructura de un árbol de decisión.}
+\caption{\label{fig:dt}Estructura de un árbol de decisión \cite{dtreewikip}.}
 \end{figure}
 
-Este modelo nos trae una serie de problemas. Para empezar, la complegidad de tiempo
-para obtener el resultado de un arbol es $O(n\log{n})$ dónde n se refiere al número
-de muestras con el que hayamos entrenedo el árbol, por otro lado la complegidad para
-crear el arbol es de:
+Este modelo nos trae una serie de problemas. Para empezar, la complejidad  de tiempo
+para obtener el resultado de un árbol es $O(n\log{n})$ \cite{sklearntree} 
+dónde n se refiere al número de muestras con el que hayamos entrenado el árbol, 
+por otro lado la complejidad  para crear el árbol es de \cite{sklearntree}:
 \begin{equation}
   O(n_{muestras}n_{variables}\log{n_{muestras}})
 \end{equation}
-lo cual indica que los tiempos de entrenamiento escalaran $O(n\log{n})$ en base
-a la cantidad de muestras que tengamos en el dataset. Esto quizá no presenta un problema
-tan grave ya que solo contamos con 48 mil entradas, pero el problema más grande de 
-los árboles de decisión es que el generar un árbol muy complejo esta sujeto sobreajuste,
-es decir, que el modelo se adapte a predecir los datos de entrenamiento y por lo
-tanto no generalice y tenga una menor precisión al predecir datos nuevos.
+lo cual indica que los tiempos de entrenamiento escalaran $O(n\log{n})$ \cite{sklearntree} 
+con base a la cantidad de muestras que tengamos en el dataset. Esto quizá no presenta 
+un problema tan grave, ya que solo contamos con 48 mil entradas, pero el problema 
+más grande de los árboles de decisión es que el generar un árbol muy complejo 
+está sujeto sobre ajuste, es decir, que el modelo se adapte a predecir los datos 
+de entrenamiento y por lo tanto no generalice y tenga una menor precisión al predecir 
+datos nuevos.
 
 \subsection{Bosque Aleatorio}
-Una de las formas de combatir el sobreajuste inevitable de los árboles de decisión
-es haciendo uso de un bosque aleatorio, este es un método de ensambe en el cual,
-en lugar de generar un solo árbol complejo. Generamos múchos árboles pequeños y
+Una de las formas de combatir el sobre ajuste inevitable de los árboles de decisión
+es haciendo uso de un bosque aleatorio, este es un método de ensamble en el cual,
+en lugar de generar un solo árbol complejo \cite{rforestwikip}. Generamos muchos árboles pequeños y
 tomamos como salida la clase que haya sido más votada por todos los árboles.
-Este método nos permite en general mitigar el sobreajuste dada la aleatoreidad de 
+Este método nos permite en general mitigar el sobre ajuste dada la aleatoriedad de 
 cada árbol.
-
-Train score: 0.833841
-Test score: 0.832231
 
 \section{Entrenamiento}
 El set de datos fue separado en tres conjuntos: entrenamiento, validación y pruebas
 constando respectivamente del 60\%, 20\% y 20\% de los datos del set. Para el modelo
-se decidió usar los siguientes híperparametros:
+se decidió usar los siguientes hiperparámetros:
 \begin{itemize}
-  \item n\_estimators: 400
-  \item max\_leaf\_nodes: 10
-  \item max\_depth: 20
+  \item n\_estimators: 300
+  \item max\_depth: None
+  \item min\_samples\_split: 4
+  \item min\_samples\_leaf: 1
+  \item max\_features: sqrt
 \end{itemize}
 Estos parámetros serán usados inicialmente para probar como se desempeña el modelo 
 contra los datos de validación.
 
+La prueba inicial nos regresa una $R^2$ de $0.979132$ para el conjunto de entrenamiento
+y $0.857953$ para prueba. Podemos analizar la matriz de confusión \ref{fig:conf1}
+y vemos que la mayoría de las predicciones se encuentran en la clase 
+$\leq50$ con 870 predicciones incorrectas. 
 
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/conf1.png}
+\caption{Matriz de confusión.}
+\label{fig:conf1}
+\end{figure}
+
+Comparando los resultados de los errores podemos notar un claro sobre ajuste a los
+datos de entrenamiento, esto se debe a que la profundidad máxima sea None, igualmente 
+podemos analizar el dataset para ver la cantidad de instancias que tenemos para cada clase:
+\begin{itemize}
+  \item $\leq50K$: 37155
+  \item $>50K$: 11687
+\end{itemize}
+La gran profundidad de los árboles está causando que se aprendan los datos del
+conjunto de entrenamiento y no puedan generalizar lo suficiente para responder
+con datos que no hayan visto antes. 
+
+Se realizaron pruebas posteriores cambiando
+los hiperparámetros y comparando con un conjunto de validación y prueba para tener 
+una mejor visión a la precisión del modelo. Posteriormente pasamos a hacer pruebas
+con diferentes parámetros para intentar mejorar la precisión del modelo.
+
+
+\section{Resultados}
+Después de realizar las pruebas con los diferentes hiperparámetros como se ve en
+la tabla \ref{tab:rf_results} se llegó a una precisión de:
+
+\begin{itemize}
+  \item Entrenamiento: 0.874449 
+  \item Validación: 0.875459 
+  \item Pruebas: 0.862047
+\end{itemize}
+con los siguientes hiperparámetros:
+
+\begin{itemize}
+  \item n\_estimators: 200
+  \item max\_depth: 40
+  \item min\_samples\_split: 2
+  \item min\_samples\_leaf: 5
+  \item max\_features: sqrt
+\end{itemize}
+se decidió por estos, ya que fueron los que produjeron un nivel bajo de sobre ajuste
+y a la vez un buen resultado de precisión del modelo.
+
+Analizando la matriz de confusión de nuestro modelo ajustado \ref{fig:conf2}
+podemos observar un ligero incremento en las predicciones correctas para $\leq50$
+y una pequeña reducción en las respuestas incorrectas para $>50$. Se decidió tomar
+el error para el conjunto de validación $0.862047$ como el mejor que se pudo lograr
+dada la complejidad del problema y el método de prueba.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{assets/conf2.png}
+\caption{Matriz de confusión final.}
+\label{fig:conf2}
+\end{figure}
+
+Otros métodos para realizar pruebas automatizadas como lo es el GridSearch fueron 
+considerados, el cual consta de especificar diferentes valores de prueba para 
+cada parámetro y posteriormente entrenar el modelo y medir su precisión, resultando
+en un modelo con los mejores parámetros posibles de todos los probados.
+Sin embargo, este fue descartado dado el tiempo que tarda este algoritmo escala 
+basado en todas las combinaciones posibles de los datos que se le proveen.
+
+\section{Conclusión}
+El modelo en general se puede clasificar con un grado de sesgo medio, producido 
+por la cantidad de observaciones apuntando a personas con ingresos menores a 50 mil
+dólares. Igualmente la varianza se puede considerar como media dado a la escala
+del problema ya que este considera solo clases entre menor o igual a 50 mil dólares 
+y mayor a los mismos, este es un espectro bastante amplio y las predicciones al 
+nivel final de precisión pueden ser muy malas en el caso de predecir erróneamente
+la clase de mayor a 50 mil.
+
+\begin{thebibliography}{9}
+\bibitem{dataset}
+Becker, B., \& Kohavi, R. (n.d.). UCI Machine Learning Repository. https://doi.org/10.24432/C5XW20
+
+\bibitem{sklearntree}
+1.10. Decision Trees. (n.d.). Scikit-learn. https://scikit-learn.org/stable/modules/tree.html
+
+\bibitem{onehot}
+
+O, C. (2023, August 16). Learn one hot encoding in 3 minutes - Dev Genius. Medium. https://blog.devgenius.io/learn-one-hot-encoding-in-3-minutes-d1ef270d6e86
+
+\bibitem{dtreewikip}
+Wikipedia contributors. (2024, July 16). Decision tree learning. Wikipedia. https://en.wikipedia.org/wiki/Decision\_tree \_learning
+
+\bibitem{rforestwikip}
+Wikipedia contributors. (2024b, August 23). Random forest. Wikipedia. https://en.wikipedia.org/wiki/Random\_forest
+
+\end{thebibliography}
+
+
+\onecolumn
+\begin{table}[ht]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{\scriptsize estimators} & \textbf{\scriptsize depth} & \textbf{\scriptsize samples\_split} & \textbf{\scriptsize samples\_leaf} & \textbf{\scriptsize features} & \textbf{\scriptsize Train} & \textbf{\scriptsize Validation} & \textbf{\scriptsize Test} \\ \hline
+400                    & 20                  & 2                            & 1                            & sqrt                  & 0.910174             & 0.910761                 & 0.862257            \\ \hline
+300                    & None                & 4                            & 1                            & sqrt                  & 0.979132             & 0.979265                 & 0.857953            \\ \hline
+300                    & None                & 4                            & 4                            & 6                     & 0.868858             & 0.871391                 & 0.857113            \\ \hline
+200                    & 40                  & 3                            & 2                            & sqrt                  & 0.901039             & 0.900656                 & 0.864462            \\ \hline
+200                    & 30                  & 2                            & 5                            & sqrt                  & 0.874449             & 0.875459                 & 0.862047            \\ \hline
+100                    & 20                  & 5                            & 2                            & sqrt                  & 0.882219             & 0.883333                 & 0.862782            \\ \hline
+\end{tabular}
+\caption{Random Forest Classifier Results with Different Hyperparameters}
+\label{tab:rf_results}
+\end{table}
+
+\vfil
+\twocolumn
 
 \end{document}
